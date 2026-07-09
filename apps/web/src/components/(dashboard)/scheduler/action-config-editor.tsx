@@ -107,15 +107,20 @@ export function ActionConfigEditor({
 
                     <div className="space-y-2">
                         <Label className="text-xs text-muted-foreground">Arguments (key=value)</Label>
-                        {Object.entries(config.arguments).map(([key, value]) => (
-                            <div key={key} className="flex gap-2">
+                        {Object.entries(config.arguments).map(([key, value], argIndex) => (
+                            <div key={argIndex} className="flex items-center gap-2">
                                 <Input
                                     className="flex-1"
                                     value={key}
                                     onChange={(e) => {
-                                        const nextArgs = { ...config.arguments };
-                                        delete nextArgs[key];
-                                        nextArgs[e.target.value] = value;
+                                        const nextArgs: Record<string, typeof value> = {};
+                                        for (const [k, v] of Object.entries(config.arguments)) {
+                                            if (k === key) {
+                                                nextArgs[e.target.value] = value;
+                                            } else {
+                                                nextArgs[k] = v;
+                                            }
+                                        }
                                         updateConfiguration(index, {
                                             ...config,
                                             arguments: nextArgs,
@@ -137,6 +142,23 @@ export function ActionConfigEditor({
                                     }
                                     placeholder="value"
                                 />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-muted-foreground hover:text-destructive shrink-0"
+                                    onClick={() => {
+                                        const nextArgs = { ...config.arguments };
+                                        delete nextArgs[key];
+                                        updateConfiguration(index, {
+                                            ...config,
+                                            arguments: nextArgs,
+                                        });
+                                    }}
+                                    title="Delete argument"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
                             </div>
                         ))}
                         <Button

@@ -107,6 +107,7 @@ export function ConfigEditor({
         if (!hasChanges) return;
         const handler = (event: BeforeUnloadEvent) => {
             event.preventDefault();
+            event.returnValue = "";
         };
         window.addEventListener("beforeunload", handler);
         return () => window.removeEventListener("beforeunload", handler);

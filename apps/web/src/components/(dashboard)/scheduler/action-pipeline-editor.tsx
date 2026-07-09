@@ -51,7 +51,7 @@ function SortableActionItem({
     onRemove: () => void;
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-        useSortable({ id: action });
+        useSortable({ id: index });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -118,9 +118,9 @@ export function ActionPipelineEditor({ actions, onChange }: ActionPipelineEditor
         const { active, over } = event;
         if (!over || active.id === over.id) return;
 
-        const oldIndex = actions.indexOf(String(active.id));
-        const newIndex = actions.indexOf(String(over.id));
-        if (oldIndex === -1 || newIndex === -1) return;
+        const oldIndex = Number(active.id);
+        const newIndex = Number(over.id);
+        if (Number.isNaN(oldIndex) || Number.isNaN(newIndex)) return;
 
         onChange(arrayMove([...actions], oldIndex, newIndex));
     };
@@ -129,8 +129,8 @@ export function ActionPipelineEditor({ actions, onChange }: ActionPipelineEditor
         onChange([...actions, action]);
     };
 
-    const removeAction = (action: string) => {
-        onChange(actions.filter((a) => a !== action));
+    const removeAction = (index: number) => {
+        onChange(actions.filter((_, i) => i !== index));
     };
 
     return (
@@ -141,7 +141,10 @@ export function ActionPipelineEditor({ actions, onChange }: ActionPipelineEditor
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
             >
-                <SortableContext items={actions} strategy={verticalListSortingStrategy}>
+                <SortableContext
+                    items={actions.map((_, i) => i)}
+                    strategy={verticalListSortingStrategy}
+                >
                     <div className="space-y-2">
                         {actions.length === 0 && (
                             <p className="rounded-lg border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
@@ -150,10 +153,10 @@ export function ActionPipelineEditor({ actions, onChange }: ActionPipelineEditor
                         )}
                         {actions.map((action, index) => (
                             <SortableActionItem
-                                key={action}
+                                key={`${action}-${index}`}
                                 action={action}
                                 index={index}
-                                onRemove={() => removeAction(action)}
+                                onRemove={() => removeAction(index)}
                             />
                         ))}
                     </div>

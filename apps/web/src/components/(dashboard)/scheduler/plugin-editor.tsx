@@ -196,7 +196,7 @@ export function PluginEditor({
                                                             setEnableFlag(
                                                                 plugin,
                                                                 flag,
-                                                                value ? undefined : false
+                                                                value ? true : false
                                                             )
                                                         );
                                                     }}
