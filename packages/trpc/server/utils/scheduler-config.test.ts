@@ -61,7 +61,7 @@ tiers:
         expect(result.warnings.length).toBeGreaterThan(0);
     });
 
-    it("parses unknown actions and surfaces them as warnings (custom actions supported)", () => {
+    it("rejects unknown actions (stock Volcano hard-fails on reload)", () => {
         const config = parseSchedulerConfYaml(`
 actions: "enqueue, allocate, my-custom-action"
 tiers:
@@ -70,8 +70,8 @@ tiers:
 `);
         expect(config.actions).toContain("my-custom-action");
         const result = validateSchedulerConfig(config);
-        expect(result.valid).toBe(true);
-        expect(result.warnings.some((w) => w.includes("my-custom-action"))).toBe(true);
+        expect(result.valid).toBe(false);
+        expect(result.errors.some((e) => e.includes("my-custom-action"))).toBe(true);
     });
 
     it("warns on unknown plugins without blocking", () => {
@@ -84,6 +84,37 @@ tiers:
         const result = validateSchedulerConfig(config);
         expect(result.valid).toBe(true);
         expect(result.warnings.some((w) => w.includes("fake-plugin"))).toBe(true);
+    });
+
+    it("errors when a plugin is duplicated within the same tier", () => {
+        const config = parseSchedulerConfYaml(`
+actions: "enqueue, allocate"
+tiers:
+- plugins:
+  - name: priority
+  - name: priority
+`);
+        const result = validateSchedulerConfig(config);
+        expect(result.valid).toBe(false);
+        expect(
+            result.errors.some((e) => e.includes("duplicated within tier"))
+        ).toBe(true);
+    });
+
+    it("warns when a plugin appears in multiple tiers", () => {
+        const config = parseSchedulerConfYaml(`
+actions: "enqueue, allocate"
+tiers:
+- plugins:
+  - name: priority
+- plugins:
+  - name: priority
+`);
+        const result = validateSchedulerConfig(config);
+        expect(result.valid).toBe(true);
+        expect(
+            result.warnings.some((w) => w.includes("appears in multiple tiers"))
+        ).toBe(true);
     });
 
     it("rejects empty argument keys", () => {

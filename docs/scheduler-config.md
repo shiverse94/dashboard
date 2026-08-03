@@ -41,7 +41,8 @@ kubectl apply -f deployment/volcano-dashboard.yaml
 |---------|-----|
 | 403 Forbidden on load/save | Re-apply `deployment/volcano-dashboard.yaml` for ConfigMap RBAC |
 | ConfigMap was modified by another user | Click **Refresh**, then re-apply your edits |
-| Unknown plugin/action errors | Use only names registered in your Volcano version |
+| Unknown action errors on save | Use only action names registered in your Volcano version |
+| Unknown plugin warnings | Custom plugins are allowed; confirm the name is intentional |
 
 ## Local development
 

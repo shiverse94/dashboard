@@ -262,12 +262,20 @@ export function PluginEditor({
                                                         )}
                                                         onChange={(e) => {
                                                             const raw = e.target.value;
-                                                            const parsed =
-                                                                field.type === "number"
-                                                                    ? raw === ""
-                                                                        ? undefined
-                                                                        : Number(raw)
-                                                                    : raw;
+                                                            let parsed:
+                                                                | string
+                                                                | number
+                                                                | undefined = raw;
+                                                            if (field.type === "number") {
+                                                                if (raw === "") {
+                                                                    parsed = undefined;
+                                                                } else {
+                                                                    const n = Number(raw);
+                                                                    parsed = Number.isFinite(n)
+                                                                        ? n
+                                                                        : undefined;
+                                                                }
+                                                            }
                                                             onChange(
                                                                 setArgument(
                                                                     plugin,

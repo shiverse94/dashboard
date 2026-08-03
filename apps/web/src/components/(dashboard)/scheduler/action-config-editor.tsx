@@ -113,10 +113,20 @@ export function ActionConfigEditor({
                                     className="flex-1"
                                     value={key}
                                     onChange={(e) => {
+                                        const newKey = e.target.value;
+                                        if (
+                                            newKey !== key &&
+                                            Object.prototype.hasOwnProperty.call(
+                                                config.arguments,
+                                                newKey
+                                            )
+                                        ) {
+                                            return;
+                                        }
                                         const nextArgs: Record<string, typeof value> = {};
                                         for (const [k, v] of Object.entries(config.arguments)) {
                                             if (k === key) {
-                                                nextArgs[e.target.value] = value;
+                                                nextArgs[newKey] = value;
                                             } else {
                                                 nextArgs[k] = v;
                                             }

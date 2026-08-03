@@ -25,7 +25,7 @@ describe("schedulerConfigSchema", () => {
         expect(result.success).toBe(false);
     });
 
-    it("accepts custom action names (validated separately as warnings)", () => {
+    it("accepts custom action names at schema level (blocked later by validateSchedulerConfig)", () => {
         const result = schedulerConfigSchema.safeParse({
             actions: ["enqueue", "my-custom-action"],
             tiers: [{ plugins: [{ name: "priority" }] }],
@@ -53,5 +53,20 @@ describe("pluginOptionSchema", () => {
             },
         });
         expect(result.success).toBe(true);
+    });
+
+    it("rejects NaN and Infinity argument numbers", () => {
+        expect(
+            pluginOptionSchema.safeParse({
+                name: "binpack",
+                arguments: { "binpack.weight": Number.NaN },
+            }).success
+        ).toBe(false);
+        expect(
+            pluginOptionSchema.safeParse({
+                name: "binpack",
+                arguments: { "binpack.weight": Number.POSITIVE_INFINITY },
+            }).success
+        ).toBe(false);
     });
 });

@@ -158,17 +158,17 @@ export function validateSchedulerConfig(config: SchedulerConfig): SchedulerConfi
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // Unknown names are warnings, not errors: Volcano supports self-defined
-    // actions/plugins and registries differ between versions.
+    // Stock Volcano refuses to reload configs with unknown action names, so
+    // treat those as errors. Unknown plugins stay warnings (custom plugins OK).
     for (const action of config.actions) {
         if (!isKnownAction(action)) {
-            warnings.push(
-                `Action "${action}" is not in the built-in registry (custom action or different Volcano version?)`
+            errors.push(
+                `Action "${action}" is not in the built-in registry; saving may break scheduler reload`
             );
         }
     }
 
-    const seenPlugins = new Set<string>();
+    const seenPlugins = new Map<string, number>();
     for (let tierIndex = 0; tierIndex < config.tiers.length; tierIndex++) {
         const tier = config.tiers[tierIndex]!;
         if (tier.plugins.length === 0) {
@@ -184,10 +184,20 @@ export function validateSchedulerConfig(config: SchedulerConfig): SchedulerConfi
                     `Plugin "${plugin.name}" is not in the built-in registry (custom plugin or different Volcano version?)`
                 );
             }
-            if (seenPlugins.has(plugin.name)) {
-                warnings.push(`Plugin "${plugin.name}" appears in multiple tiers`);
+            const firstTier = seenPlugins.get(plugin.name);
+            if (firstTier !== undefined) {
+                if (firstTier === tierIndex) {
+                    errors.push(
+                        `Plugin "${plugin.name}" is duplicated within tier ${tierIndex + 1}`
+                    );
+                } else {
+                    warnings.push(
+                        `Plugin "${plugin.name}" appears in multiple tiers (tier ${firstTier + 1} and tier ${tierIndex + 1})`
+                    );
+                }
+            } else {
+                seenPlugins.set(plugin.name, tierIndex);
             }
-            seenPlugins.add(plugin.name);
             for (const key of Object.keys(plugin.arguments ?? {})) {
                 if (!key.trim()) {
                     errors.push(

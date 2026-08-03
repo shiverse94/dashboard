@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { PLUGIN_ENABLE_FLAG_KEYS } from "./metadata";
 
-const argumentValueSchema = z.union([z.string(), z.number(), z.boolean()]);
+const argumentValueSchema = z.union([
+    z.string(),
+    z.number().finite(),
+    z.boolean(),
+]);
 
 const enableFlagShape = Object.fromEntries(
     PLUGIN_ENABLE_FLAG_KEYS.map((key) => [key, z.boolean().optional()])
@@ -22,9 +26,9 @@ export const actionConfigurationSchema = z.object({
     arguments: z.record(argumentValueSchema),
 });
 
-// Action names are intentionally not restricted to the built-in registry:
-// Volcano supports self-defined actions/plugins, and registries differ across
-// versions. Unknown names surface as warnings via validateSchedulerConfig.
+// Action names are not restricted in Zod: registries differ across Volcano
+// versions. validateSchedulerConfig rejects unknown actions (stock Volcano
+// hard-fails on reload) and warns on unknown plugins (custom plugins allowed).
 export const schedulerConfigSchema = z.object({
     actions: z.array(z.string().min(1)).min(1),
     tiers: z.array(tierSchema).min(1),
