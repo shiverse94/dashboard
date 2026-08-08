@@ -9,3 +9,10 @@ export function getSchedulerConfigMapName(): string {
 export function getSchedulerConfigKey(): string {
     return process.env.VOLCANO_SCHEDULER_CONFIG_KEY?.trim() || "volcano-scheduler.conf";
 }
+
+export function getSchedulerMetricsUrl(): string {
+    return (
+        process.env.VOLCANO_SCHEDULER_METRICS_URL?.trim() ||
+        "http://volcano-scheduler-service.volcano-system.svc:8080/metrics"
+    );
+}

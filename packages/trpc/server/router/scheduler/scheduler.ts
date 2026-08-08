@@ -3,12 +3,14 @@ import {
     getSchedulerConfigKey,
     getSchedulerConfigMapName,
     getSchedulerConfigMapNamespace,
+    getSchedulerMetricsUrl,
 } from "../../utils/scheduler-env";
 import {
     parseSchedulerConfYaml,
     serializeSchedulerConf,
     validateSchedulerConfig,
 } from "../../utils/scheduler-config";
+import { parseSchedulerMetrics } from "../../utils/prometheus-parser";
 import { formatK8sApiError } from "../../utils/k8s-errors";
 import { k8sCoreApi } from "../../utils/k8s";
 import {
@@ -49,6 +51,44 @@ export const schedulerRouter = router({
             };
         } catch (error) {
             throw new Error(formatK8sApiError(error));
+        }
+    }),
+
+    getMetrics: procedure.query(async () => {
+        const metricsUrl = getSchedulerMetricsUrl();
+
+        try {
+            const response = await fetch(metricsUrl, {
+                signal: AbortSignal.timeout(5000),
+                headers: { Accept: "text/plain" },
+            });
+
+            if (!response.ok) {
+                throw new Error(
+                    `Scheduler metrics endpoint returned HTTP ${response.status}. ` +
+                        "Confirm volcano-scheduler is running with --enable-metrics=true " +
+                        `and reachable at ${metricsUrl}.`
+                );
+            }
+
+            const text = await response.text();
+            return parseSchedulerMetrics(text);
+        } catch (error) {
+            if (error instanceof Error && error.name === "TimeoutError") {
+                throw new Error(
+                    `Timed out fetching scheduler metrics from ${metricsUrl}. ` +
+                        "Check that volcano-scheduler-service is up and metrics are enabled."
+                );
+            }
+            if (error instanceof Error && error.message.startsWith("Scheduler metrics")) {
+                throw error;
+            }
+            const detail = error instanceof Error ? error.message : String(error);
+            throw new Error(
+                `Unable to reach scheduler metrics at ${metricsUrl}: ${detail}. ` +
+                    "For local development, port-forward the service and set " +
+                    "VOLCANO_SCHEDULER_METRICS_URL=http://localhost:18080/metrics."
+            );
         }
     }),
 
