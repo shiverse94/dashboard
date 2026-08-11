@@ -1,11 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@volcano/trpc/react";
+import type { SchedulerConfig } from "@volcano/trpc/server/router/scheduler/schema";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import type { SchedulerConfig } from "@volcano/trpc/server/router/scheduler/schema";
 import { ConfigEditor } from "./config-editor";
+import { MetricsTab } from "./metrics-tab";
 
 export default function SchedulerManagement() {
     const [draft, setDraft] = useState<SchedulerConfig | null>(null);
@@ -13,6 +15,7 @@ export default function SchedulerManagement() {
     const [serverConfig, setServerConfig] = useState<SchedulerConfig | null>(null);
     const [serverYaml, setServerYaml] = useState<string>("");
     const [isDirty, setIsDirty] = useState(false);
+    const [activeTab, setActiveTab] = useState("config");
 
     const {
         data,
@@ -23,6 +26,7 @@ export default function SchedulerManagement() {
         isFetching,
     } = trpc.schedulerRouter.getSchedulerConfig.useQuery(undefined, {
         refetchOnWindowFocus: false,
+        enabled: activeTab === "config",
     });
 
     const seedFromServer = useCallback(
@@ -82,57 +86,76 @@ export default function SchedulerManagement() {
         <div className="p-6 space-y-4">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold">Scheduler Configuration</h1>
+                    <h1 className="text-2xl font-bold">Scheduler</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Edit the volcano scheduler policy in{" "}
-                        <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                            {data?.namespace ?? "volcano-system"}/
-                            {data?.name ?? "volcano-scheduler-configmap"}
-                        </code>
+                        Configure scheduling policy and observe live Prometheus metrics
                     </p>
                 </div>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => void handleRefresh()}
-                    disabled={isFetching}
-                >
-                    {isFetching ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                        <RefreshCw className="h-4 w-4" />
-                    )}
-                    <span className="ml-2">Refresh</span>
-                </Button>
             </div>
 
-            {isLoading && (
-                <div className="flex items-center gap-2 text-muted-foreground py-12 justify-center">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Loading scheduler configuration...
-                </div>
-            )}
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList>
+                    <TabsTrigger value="config">Config</TabsTrigger>
+                    <TabsTrigger value="metrics">Metrics</TabsTrigger>
+                </TabsList>
 
-            {isError && (
-                <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
-                    {error?.message ?? "Failed to load scheduler configuration"}
-                </div>
-            )}
+                <TabsContent value="config" className="space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm text-muted-foreground">
+                            Edit the volcano scheduler policy in{" "}
+                            <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                                {data?.namespace ?? "volcano-system"}/
+                                {data?.name ?? "volcano-scheduler-configmap"}
+                            </code>
+                        </p>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => void handleRefresh()}
+                            disabled={isFetching}
+                        >
+                            {isFetching ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <RefreshCw className="h-4 w-4" />
+                            )}
+                            <span className="ml-2">Refresh</span>
+                        </Button>
+                    </div>
 
-            {!isLoading && !isError && draft && serverConfig && (
-                <ConfigEditor
-                    draft={draft}
-                    serverConfig={serverConfig}
-                    serverYaml={serverYaml}
-                    configMapRef={`${data?.namespace ?? "volcano-system"}/${data?.name ?? "volcano-scheduler-configmap"}`}
-                    resourceVersion={resourceVersion}
-                    serverValidation={data?.validation}
-                    onDraftChange={setDraft}
-                    onDirtyChange={setIsDirty}
-                    onSaved={handleSaved}
-                    onDiscard={handleDiscard}
-                />
-            )}
+                    {isLoading && (
+                        <div className="flex items-center gap-2 text-muted-foreground py-12 justify-center">
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            Loading scheduler configuration...
+                        </div>
+                    )}
+
+                    {isError && (
+                        <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+                            {error?.message ?? "Failed to load scheduler configuration"}
+                        </div>
+                    )}
+
+                    {!isLoading && !isError && draft && serverConfig && (
+                        <ConfigEditor
+                            draft={draft}
+                            serverConfig={serverConfig}
+                            serverYaml={serverYaml}
+                            configMapRef={`${data?.namespace ?? "volcano-system"}/${data?.name ?? "volcano-scheduler-configmap"}`}
+                            resourceVersion={resourceVersion}
+                            serverValidation={data?.validation}
+                            onDraftChange={setDraft}
+                            onDirtyChange={setIsDirty}
+                            onSaved={handleSaved}
+                            onDiscard={handleDiscard}
+                        />
+                    )}
+                </TabsContent>
+
+                <TabsContent value="metrics">
+                    <MetricsTab />
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
