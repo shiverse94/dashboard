@@ -2,17 +2,29 @@
 
 ## Overview
 
-The volcano dashboard provides a basic dashboard that can be easily deployed in your kubernetes cluster to show the status of resources including volcano jobs, queues, pods, and scheduler configuration.
+The volcano dashboard provides a basic dashboard that can be easily deployed in your kubernetes cluster to show the status of resources including volcano jobs, queues, pods, scheduler configuration, and scheduler metrics.
 
 <img src="docs/images/demo.gif" alt="volcano dashboard" style="zoom:50%;" />
 
-## Scheduler configuration
+## Scheduler
 
-The **Scheduler** page (`/scheduler`) provides a UI to read and write `volcano-scheduler-configmap`: reorder scheduling actions, edit plugin tiers and toggles, preview YAML diffs, and save via the Kubernetes API.
+The **Scheduler** page (`/scheduler`) has two tabs:
 
-See [docs/scheduler-config.md](docs/scheduler-config.md) for usage, RBAC, and environment variables.
+- **Config** — read and write `volcano-scheduler-configmap`: reorder actions, edit plugin tiers and toggles, preview YAML diffs, and save via the Kubernetes API
+- **Metrics** — poll the scheduler Prometheus `/metrics` endpoint and show unschedulable counts, preemptions, and scheduling latency
 
-After upgrading to a build that includes this feature, re-apply the dashboard manifest so the ServiceAccount can patch the scheduler ConfigMap:
+See [docs/scheduler.md](docs/scheduler.md) for usage, RBAC, environment variables, and troubleshooting.
+
+Relevant environment variables:
+
+| Variable | Default |
+|----------|---------|
+| `VOLCANO_SCHEDULER_CONFIGMAP_NAMESPACE` | `volcano-system` |
+| `VOLCANO_SCHEDULER_CONFIGMAP_NAME` | `volcano-scheduler-configmap` |
+| `VOLCANO_SCHEDULER_CONFIG_KEY` | `volcano-scheduler.conf` |
+| `VOLCANO_SCHEDULER_METRICS_URL` | `http://volcano-scheduler-service.volcano-system.svc:8080/metrics` |
+
+After upgrading to a build that includes Config editing, re-apply the dashboard manifest so the ServiceAccount can patch the scheduler ConfigMap:
 
 ```bash
 kubectl apply -f deployment/volcano-dashboard.yaml
