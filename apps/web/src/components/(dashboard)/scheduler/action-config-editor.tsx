@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import type { SchedulerConfig } from "@volcano/trpc/server/router/scheduler/schema";
 import { Plus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type ActionConfigEditorProps = {
     configurations: NonNullable<SchedulerConfig["configurations"]>;
@@ -24,6 +25,8 @@ export function ActionConfigEditor({
     actions,
     onChange,
 }: ActionConfigEditorProps) {
+    const t = useTranslations("scheduler.actionConfigs");
+
     const addConfiguration = () => {
         const unusedAction = actions.find(
             (action) => !configurations.some((c) => c.name === action)
@@ -56,7 +59,7 @@ export function ActionConfigEditor({
         <div className="space-y-3">
             {configurations.length === 0 && (
                 <p className="rounded-lg border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
-                    No per-action arguments configured.
+                    {t("empty")}
                 </p>
             )}
 
@@ -64,7 +67,7 @@ export function ActionConfigEditor({
                 <div key={`${config.name}-${index}`} className="rounded-lg border p-3 space-y-2">
                     <div className="flex items-center gap-2">
                         <div className="flex-1 max-w-xs space-y-1">
-                            <Label className="text-xs text-muted-foreground">Action</Label>
+                            <Label className="text-xs text-muted-foreground">{t("action")}</Label>
                             <Select
                                 value={config.name}
                                 onValueChange={(name) =>
@@ -99,14 +102,14 @@ export function ActionConfigEditor({
                             size="icon"
                             className="mt-5 ml-auto text-muted-foreground hover:text-destructive"
                             onClick={() => removeConfiguration(index)}
-                            title="Remove action configuration"
+                            title={t("removeConfig")}
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Arguments (key=value)</Label>
+                        <Label className="text-xs text-muted-foreground">{t("arguments")}</Label>
                         {Object.entries(config.arguments).map(([key, value], argIndex) => (
                             <div key={argIndex} className="flex items-center gap-2">
                                 <Input
@@ -136,7 +139,7 @@ export function ActionConfigEditor({
                                             arguments: nextArgs,
                                         });
                                     }}
-                                    placeholder="key"
+                                    placeholder={t("keyPlaceholder")}
                                 />
                                 <Input
                                     className="flex-1"
@@ -150,7 +153,7 @@ export function ActionConfigEditor({
                                             },
                                         })
                                     }
-                                    placeholder="value"
+                                    placeholder={t("valuePlaceholder")}
                                 />
                                 <Button
                                     type="button"
@@ -165,7 +168,7 @@ export function ActionConfigEditor({
                                             arguments: nextArgs,
                                         });
                                     }}
-                                    title="Delete argument"
+                                    title={t("deleteArgument")}
                                 >
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -186,11 +189,11 @@ export function ActionConfigEditor({
                                 })
                             }
                         >
-                            Add argument
+                            {t("addArgument")}
                         </Button>
                         {Object.keys(config.arguments).some((k) => !k.trim()) && (
                             <p className="text-xs text-amber-600">
-                                Fill in the argument key before adding another or saving.
+                                {t("emptyKeyWarning")}
                             </p>
                         )}
                     </div>
@@ -206,7 +209,7 @@ export function ActionConfigEditor({
                     onClick={addConfiguration}
                 >
                     <Plus className="h-3.5 w-3.5 mr-1.5" />
-                    Add action configuration
+                    {t("addConfig")}
                 </Button>
             )}
         </div>

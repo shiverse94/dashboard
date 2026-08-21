@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type SaveConfigBarProps = {
     hasChanges: boolean;
@@ -19,6 +20,8 @@ export function SaveConfigBar({
     onSave,
     onDiscard,
 }: SaveConfigBarProps) {
+    const t = useTranslations("scheduler.saveBar");
+
     return (
         <div className="sticky top-0 z-10 -mx-1 flex items-center justify-between gap-3 rounded-lg border bg-background/95 px-4 py-2.5 shadow-sm backdrop-blur">
             <div className="flex items-center gap-2 text-sm">
@@ -27,16 +30,16 @@ export function SaveConfigBar({
                         variant="secondary"
                         className="font-normal text-amber-700 dark:text-amber-400"
                     >
-                        Unsaved changes
+                        {t("unsavedChanges")}
                     </Badge>
                 ) : justSaved ? (
                     <span className="flex items-center gap-1.5 text-green-700 dark:text-green-400">
                         <CheckCircle2 className="h-4 w-4" />
-                        Configuration saved
+                        {t("saved")}
                     </span>
                 ) : (
                     <span className="text-muted-foreground">
-                        Everything up to date
+                        {t("upToDate")}
                     </span>
                 )}
             </div>
@@ -48,7 +51,7 @@ export function SaveConfigBar({
                     onClick={onDiscard}
                     disabled={!hasChanges || isSaving}
                 >
-                    Discard
+                    {t("discard")}
                 </Button>
                 <Button
                     type="button"
@@ -57,7 +60,7 @@ export function SaveConfigBar({
                     disabled={!hasChanges || isSaving}
                 >
                     {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Save configuration
+                    {t("save")}
                 </Button>
             </div>
         </div>

@@ -27,6 +27,7 @@ import {
 } from "@volcano/trpc/server/router/scheduler/metadata";
 import type { PluginOption } from "@volcano/trpc/server/router/scheduler/schema";
 import { ChevronRight, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type PluginEditorProps = {
     plugin: PluginOption;
@@ -74,6 +75,7 @@ export function PluginEditor({
     onChange,
     onRemove,
 }: PluginEditorProps) {
+    const t = useTranslations("scheduler");
     const enableFlags = getPluginEnableFlags(plugin.name);
     const argumentSchema = getPluginArgumentSchema(plugin.name);
     const customArgumentKeys = Object.keys(plugin.arguments ?? {}).filter(
@@ -88,6 +90,18 @@ export function PluginEditor({
         ? [plugin.name, ...PLUGIN_NAMES]
         : [...PLUGIN_NAMES];
 
+    const flagLabel = (flag: PluginEnableFlagKey) => {
+        const key = `enableFlags.${flag}` as const;
+        return t.has(key) ? t(key) : PLUGIN_ENABLE_FLAG_LABELS[flag];
+    };
+
+    const argumentLabel = (field: { key: string; label: string }) => {
+        const key = `argumentLabels.${field.key}`;
+        return t.has(key as "argumentLabels.weight")
+            ? t(key as "argumentLabels.weight")
+            : field.label;
+    };
+
     return (
         <Collapsible>
             <div className="rounded-lg border bg-background transition-colors hover:border-muted-foreground/30">
@@ -100,7 +114,7 @@ export function PluginEditor({
                         <span className="flex items-center gap-1.5 ml-auto shrink-0">
                             {isCustom && (
                                 <Badge variant="outline" className="font-normal">
-                                    custom
+                                    {t("plugin.custom")}
                                 </Badge>
                             )}
                             {disabledFlags.length > 0 && (
@@ -108,13 +122,12 @@ export function PluginEditor({
                                     variant="secondary"
                                     className="font-normal text-amber-700 dark:text-amber-400"
                                 >
-                                    {disabledFlags.length} function
-                                    {disabledFlags.length === 1 ? "" : "s"} off
+                                    {t("plugin.functionsOff", { count: disabledFlags.length })}
                                 </Badge>
                             )}
                             {argCount > 0 && (
                                 <Badge variant="secondary" className="font-normal">
-                                    {argCount} arg{argCount === 1 ? "" : "s"}
+                                    {t("plugin.argsCount", { count: argCount })}
                                 </Badge>
                             )}
                         </span>
@@ -128,8 +141,8 @@ export function PluginEditor({
                         disabled={!canRemove}
                         title={
                             canRemove
-                                ? "Remove plugin"
-                                : "A tier needs at least one plugin"
+                                ? t("plugin.removePlugin")
+                                : t("plugin.removePluginDisabled")
                         }
                     >
                         <Trash2 className="h-4 w-4" />
@@ -140,7 +153,7 @@ export function PluginEditor({
                     <div className="border-t px-3 py-3 space-y-4">
                         <div className="max-w-xs space-y-1">
                             <Label className="text-xs text-muted-foreground">
-                                Plugin
+                                {t("plugin.label")}
                             </Label>
                             <Select
                                 value={plugin.name}
@@ -172,10 +185,10 @@ export function PluginEditor({
                         {enableFlags.length > 0 && (
                             <div className="space-y-2">
                                 <Label className="text-xs text-muted-foreground">
-                                    Session functions
+                                    {t("plugin.sessionFunctions")}
                                     <span className="font-normal">
                                         {" "}
-                                        — all enabled unless unchecked
+                                        — {t("plugin.sessionFunctionsHint")}
                                     </span>
                                 </Label>
                                 <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -205,7 +218,7 @@ export function PluginEditor({
                                                     htmlFor={`${plugin.name}-${flag}`}
                                                     className="text-sm font-normal cursor-pointer"
                                                 >
-                                                    {PLUGIN_ENABLE_FLAG_LABELS[flag]}
+                                                    {flagLabel(flag)}
                                                 </Label>
                                             </div>
                                         );
@@ -217,7 +230,7 @@ export function PluginEditor({
                         {(argumentSchema.length > 0 || customArgumentKeys.length > 0) && (
                             <div className="space-y-2">
                                 <Label className="text-xs text-muted-foreground">
-                                    Arguments
+                                    {t("plugin.arguments")}
                                 </Label>
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     {argumentSchema.map((field) => (
@@ -243,13 +256,13 @@ export function PluginEditor({
                                                         htmlFor={`${plugin.name}-arg-${field.key}`}
                                                         className="text-sm font-normal cursor-pointer"
                                                     >
-                                                        {field.label}
+                                                        {argumentLabel(field)}
                                                     </Label>
                                                 </div>
                                             ) : (
                                                 <>
                                                     <Label className="text-xs">
-                                                        {field.label}
+                                                        {argumentLabel(field)}
                                                     </Label>
                                                     <Input
                                                         type={

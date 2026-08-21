@@ -9,6 +9,7 @@ import {
 import { PLUGIN_NAMES } from "@volcano/trpc/server/router/scheduler/metadata";
 import type { SchedulerConfig } from "@volcano/trpc/server/router/scheduler/schema";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PluginEditor } from "./plugin-editor";
 
 type TierEditorProps = {
@@ -17,6 +18,8 @@ type TierEditorProps = {
 };
 
 export function TierEditor({ tiers, onChange }: TierEditorProps) {
+    const t = useTranslations("scheduler.pluginTiers");
+
     const addTier = () => {
         onChange([...tiers, { plugins: [{ name: "priority" }] }]);
     };
@@ -40,12 +43,12 @@ export function TierEditor({ tiers, onChange }: TierEditorProps) {
                             <CollapsibleTrigger className="group flex flex-1 items-center gap-2 text-sm min-w-0 text-left">
                                 <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-data-[state=closed]:-rotate-90" />
                                 <span className="font-semibold shrink-0">
-                                    Tier {tierIndex + 1}
+                                    {t("tierTitle", { index: tierIndex + 1 })}
                                 </span>
                                 <span className="text-xs text-muted-foreground truncate">
                                     {tierIndex === 0
-                                        ? "evaluated first"
-                                        : "evaluated if higher tiers pass"}
+                                        ? t("evaluatedFirst")
+                                        : t("evaluatedIfHigherPass")}
                                     {" · "}
                                     {tier.plugins.map((p) => p.name).join(", ")}
                                 </span>
@@ -59,8 +62,8 @@ export function TierEditor({ tiers, onChange }: TierEditorProps) {
                                 disabled={tiers.length <= 1}
                                 title={
                                     tiers.length > 1
-                                        ? "Remove tier"
-                                        : "At least one tier is required"
+                                        ? t("removeTier")
+                                        : t("removeTierDisabled")
                                 }
                             >
                                 <Trash2 className="h-4 w-4" />
@@ -107,7 +110,7 @@ export function TierEditor({ tiers, onChange }: TierEditorProps) {
                                     }}
                                 >
                                     <Plus className="h-3.5 w-3.5 mr-1.5" />
-                                    Add plugin to tier {tierIndex + 1}
+                                    {t("addPlugin", { index: tierIndex + 1 })}
                                 </Button>
                             </div>
                         </CollapsibleContent>
@@ -123,7 +126,7 @@ export function TierEditor({ tiers, onChange }: TierEditorProps) {
                 onClick={addTier}
             >
                 <Plus className="h-3.5 w-3.5 mr-1.5" />
-                Add tier
+                {t("addTier")}
             </Button>
         </div>
     );

@@ -13,6 +13,7 @@ export const navTitleKeys = {
   queues: "queues",
   pods: "pods",
   podgroups: "podgroups",
+  scheduler: "scheduler",
 } as const;
 
 export const navItems: NavItem[] = [
@@ -46,10 +47,10 @@ export const navItems: NavItem[] = [
     href: "/podgroups",
     disable: false,
   },
-    {
-        title: "Scheduler",
-        icon: "scheduler",
-        href: `/scheduler`,
-        disable: false
-    },
+  {
+    titleKey: "scheduler",
+    icon: "scheduler",
+    href: "/scheduler",
+    disable: false,
+  },
 ];

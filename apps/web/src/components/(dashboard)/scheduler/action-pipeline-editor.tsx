@@ -20,12 +20,13 @@ import { CSS } from "@dnd-kit/utilities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    ACTION_DESCRIPTIONS,
     ACTION_NAMES,
+    isKnownAction,
     type ActionName,
 } from "@volcano/trpc/server/router/scheduler/metadata";
 import type { SchedulerConfig } from "@volcano/trpc/server/router/scheduler/schema";
 import { GripVertical, Plus, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type ActionPipelineEditorProps = {
     actions: SchedulerConfig["actions"];
@@ -34,11 +35,14 @@ type ActionPipelineEditorProps = {
 
 const RECOMMENDED_ACTIONS = new Set(["enqueue", "allocate"]);
 
-function actionDescription(action: string): string {
-    return (
-        (ACTION_DESCRIPTIONS as Record<string, string>)[action] ??
-        "Custom action (not in the built-in registry)"
-    );
+function actionDescription(
+    action: string,
+    t: ReturnType<typeof useTranslations<"scheduler">>
+): string {
+    if (isKnownAction(action)) {
+        return t(`actionDescriptions.${action}`);
+    }
+    return t("actionDescriptions.custom");
 }
 
 function SortableActionItem({
@@ -50,6 +54,7 @@ function SortableActionItem({
     index: number;
     onRemove: () => void;
 }) {
+    const t = useTranslations("scheduler");
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
         useSortable({ id: index });
 
@@ -68,7 +73,7 @@ function SortableActionItem({
             <button
                 type="button"
                 className="cursor-grab touch-none text-muted-foreground hover:text-foreground"
-                title="Drag to reorder"
+                title={t("actionPipeline.dragToReorder")}
                 {...attributes}
                 {...listeners}
             >
@@ -82,12 +87,12 @@ function SortableActionItem({
                     <span className="font-mono text-sm font-medium">{action}</span>
                     {RECOMMENDED_ACTIONS.has(action) && (
                         <Badge variant="secondary" className="font-normal">
-                            recommended
+                            {t("actionPipeline.recommended")}
                         </Badge>
                     )}
                 </div>
                 <div className="text-xs text-muted-foreground truncate">
-                    {actionDescription(action)}
+                    {actionDescription(action, t)}
                 </div>
             </div>
             <Button
@@ -96,7 +101,7 @@ function SortableActionItem({
                 size="icon"
                 className="shrink-0 text-muted-foreground hover:text-destructive"
                 onClick={onRemove}
-                title="Remove action"
+                title={t("actionPipeline.removeAction")}
             >
                 <X className="h-4 w-4" />
             </Button>
@@ -105,6 +110,7 @@ function SortableActionItem({
 }
 
 export function ActionPipelineEditor({ actions, onChange }: ActionPipelineEditorProps) {
+    const t = useTranslations("scheduler");
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
@@ -148,7 +154,7 @@ export function ActionPipelineEditor({ actions, onChange }: ActionPipelineEditor
                     <div className="space-y-2">
                         {actions.length === 0 && (
                             <p className="rounded-lg border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
-                                No actions configured. Add at least one action below.
+                                {t("actionPipeline.empty")}
                             </p>
                         )}
                         {actions.map((action, index) => (
@@ -165,7 +171,7 @@ export function ActionPipelineEditor({ actions, onChange }: ActionPipelineEditor
 
             {availableActions.length > 0 && (
                 <div className="space-y-1.5">
-                    <p className="text-xs text-muted-foreground">Available actions</p>
+                    <p className="text-xs text-muted-foreground">{t("actionPipeline.availableActions")}</p>
                     <div className="flex flex-wrap gap-1.5">
                         {availableActions.map((action) => (
                             <Button
@@ -174,7 +180,7 @@ export function ActionPipelineEditor({ actions, onChange }: ActionPipelineEditor
                                 variant="outline"
                                 size="sm"
                                 className="h-7 border-dashed font-mono text-xs text-muted-foreground hover:text-foreground"
-                                title={actionDescription(action)}
+                                title={actionDescription(action, t)}
                                 onClick={() => addAction(action)}
                             >
                                 <Plus className="h-3 w-3 mr-1" />

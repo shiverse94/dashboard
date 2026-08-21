@@ -22,6 +22,7 @@ import type { SchedulerConfig } from "@volcano/trpc/server/router/scheduler/sche
 import { schedulerConfigToRawYaml } from "@volcano/trpc/server/utils/scheduler-config";
 import { dump } from "js-yaml";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { ActionConfigEditor } from "./action-config-editor";
 import { ActionPipelineEditor } from "./action-pipeline-editor";
@@ -70,6 +71,8 @@ export function ConfigEditor({
     onSaved,
     onDiscard,
 }: ConfigEditorProps) {
+    const t = useTranslations("scheduler");
+    const tc = useTranslations("common");
     const [saveError, setSaveError] = useState<string | null>(null);
     const [saveWarnings, setSaveWarnings] = useState<string[]>([]);
     const [justSaved, setJustSaved] = useState(false);
@@ -131,18 +134,17 @@ export function ConfigEditor({
         [serverYaml]
     );
 
+    const commentsWarning = t("alerts.commentsWarning");
     const warnings = useMemo(() => {
         const merged = [
             ...(serverValidation?.warnings ?? []),
             ...saveWarnings,
         ];
         if (serverYamlHasComments) {
-            merged.push(
-                "The current ConfigMap contains YAML comments; saving rewrites the file and removes them."
-            );
+            merged.push(commentsWarning);
         }
         return Array.from(new Set(merged));
-    }, [serverValidation?.warnings, saveWarnings, serverYamlHasComments]);
+    }, [serverValidation?.warnings, saveWarnings, serverYamlHasComments, commentsWarning]);
 
     const handleConfirmSave = () => {
         setSaveError(null);
@@ -172,7 +174,7 @@ export function ConfigEditor({
             {saveError && (
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Save failed</AlertTitle>
+                    <AlertTitle>{t("alerts.saveFailed")}</AlertTitle>
                     <AlertDescription>{saveError}</AlertDescription>
                 </Alert>
             )}
@@ -180,7 +182,7 @@ export function ConfigEditor({
             {warnings.length > 0 && (
                 <Alert>
                     <AlertTriangle className="h-4 w-4 text-amber-600" />
-                    <AlertTitle>Heads up</AlertTitle>
+                    <AlertTitle>{t("alerts.headsUp")}</AlertTitle>
                     <AlertDescription>
                         <ul className="list-disc pl-4 space-y-0.5">
                             {warnings.map((warning) => (
@@ -195,10 +197,9 @@ export function ConfigEditor({
                 <div className="space-y-4 min-w-0">
                     <Card>
                         <CardHeader className="pb-4">
-                            <CardTitle>Action Pipeline</CardTitle>
+                            <CardTitle>{t("actionPipeline.title")}</CardTitle>
                             <CardDescription>
-                                Actions run in order on every scheduling cycle. Drag to
-                                reorder.
+                                {t("actionPipeline.description")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -213,11 +214,9 @@ export function ConfigEditor({
 
                     <Card>
                         <CardHeader className="pb-4">
-                            <CardTitle>Plugin Tiers</CardTitle>
+                            <CardTitle>{t("pluginTiers.title")}</CardTitle>
                             <CardDescription>
-                                Plugins register the scheduling algorithms. Higher tiers
-                                take precedence for eviction decisions. Click a plugin to
-                                edit its functions and arguments.
+                                {t("pluginTiers.description")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -232,10 +231,9 @@ export function ConfigEditor({
 
                     <Card>
                         <CardHeader className="pb-4">
-                            <CardTitle>Action Configurations</CardTitle>
+                            <CardTitle>{t("actionConfigs.title")}</CardTitle>
                             <CardDescription>
-                                Optional per-action arguments, e.g. overcommit-factor for
-                                enqueue.
+                                {t("actionConfigs.description")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -253,9 +251,9 @@ export function ConfigEditor({
                 <div className="min-w-0">
                     <Card className="xl:sticky xl:top-16">
                         <CardHeader className="pb-4">
-                            <CardTitle>Pending Changes</CardTitle>
+                            <CardTitle>{t("pendingChanges.title")}</CardTitle>
                             <CardDescription>
-                                YAML that will be written to the ConfigMap on save.
+                                {t("pendingChanges.description")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -276,14 +274,16 @@ export function ConfigEditor({
             >
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Apply scheduler configuration?</DialogTitle>
+                        <DialogTitle>{t("confirm.title")}</DialogTitle>
                         <DialogDescription>
-                            This updates{" "}
-                            <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                                {configMapRef}
-                            </code>
-                            . The Volcano scheduler reloads this ConfigMap automatically,
-                            so changes affect scheduling decisions cluster-wide.
+                            {t.rich("confirm.description", {
+                                configMap: configMapRef,
+                                code: (chunks) => (
+                                    <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                                        {chunks}
+                                    </code>
+                                ),
+                            })}
                         </DialogDescription>
                     </DialogHeader>
                     <YamlDiffPreview
@@ -298,7 +298,7 @@ export function ConfigEditor({
                             onClick={() => setConfirmOpen(false)}
                             disabled={isSaving}
                         >
-                            Cancel
+                            {tc("actions.cancel")}
                         </Button>
                         <Button
                             type="button"
@@ -308,7 +308,7 @@ export function ConfigEditor({
                             {isSaving && (
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                             )}
-                            Apply changes
+                            {t("confirm.apply")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

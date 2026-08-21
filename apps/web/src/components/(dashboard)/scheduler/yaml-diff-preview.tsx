@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { diffSchedulerYaml } from "@volcano/trpc/server/utils/scheduler-config";
 import { ChevronRight, FileCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 type YamlDiffPreviewProps = {
@@ -71,6 +72,7 @@ export function YamlDiffPreview({
     afterYaml,
     heightClass = "h-[520px]",
 }: YamlDiffPreviewProps) {
+    const t = useTranslations("scheduler.pendingChanges");
     const diff = useMemo(
         () => diffSchedulerYaml(beforeYaml, afterYaml),
         [beforeYaml, afterYaml]
@@ -86,14 +88,13 @@ export function YamlDiffPreview({
                 <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed px-4 py-8 text-center">
                     <FileCheck className="h-6 w-6 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
-                        No pending changes. Edits will show up here as a YAML diff
-                        before you save.
+                        {t("noChanges")}
                     </p>
                 </div>
                 <Collapsible>
                     <CollapsibleTrigger className="group flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
                         <ChevronRight className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-90" />
-                        View current configuration
+                        {t("viewCurrent")}
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                         <ScrollArea className="mt-2 h-[360px] w-full rounded-lg border bg-muted/20">
@@ -123,7 +124,7 @@ export function YamlDiffPreview({
                     −{removed}
                 </Badge>
                 <span>
-                    line{added + removed === 1 ? "" : "s"} will change on save
+                    {t("linesWillChange", { count: added + removed })}
                 </span>
             </div>
             <ScrollArea className={cn("w-full rounded-lg border bg-muted/20", heightClass)}>
@@ -134,7 +135,7 @@ export function YamlDiffPreview({
                                 key={index}
                                 className="-mx-3 my-0.5 border-y border-dashed bg-muted/40 px-3 py-0.5 text-center text-[11px] text-muted-foreground select-none"
                             >
-                                ⋯ {row.count} unchanged line{row.count === 1 ? "" : "s"}
+                                {t("unchangedLines", { count: row.count })}
                             </div>
                         ) : (
                             <div
