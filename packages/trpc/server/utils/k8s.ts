@@ -10,7 +10,7 @@ function createKubeConfig(): KubeConfig {
         const serverOverride = process.env.K8S_SERVER?.trim();
 
         if (skipTLSVerify || serverOverride) {
-            const clusters = kc.getClusters().map((cluster) => ({
+            const clusters = kc.getClusters().map(((cluster)) => ({
                 ...cluster,
                 ...(serverOverride && { server: serverOverride }),
                 ...(skipTLSVerify && { skipTLSVerify: true }),
